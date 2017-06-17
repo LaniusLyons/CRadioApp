@@ -1,11 +1,12 @@
 package com.passeapp.dark_legion.cradioapp;
 
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -16,10 +17,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.ImageButton;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements FragmentTabStream.OnFragmentInteractionListener, FragmentTabSponsors.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -91,12 +93,13 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * A placeholder fragment containing a simple view.
-     */
+
+
     public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
          * fragment.
-         */
+
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() {
@@ -105,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Returns a new instance of this fragment for the given section
          * number.
-         */
+
         public static PlaceholderFragment newInstance(int sectionNumber) {
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
@@ -123,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
     }
+    */
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -138,7 +142,14 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            //return PlaceholderFragment.newInstance(position + 1);
+            switch (position) {
+                case 0:
+                    return new FragmentTabStream();
+                case 1:
+                    return new FragmentTabSponsors();
+            }
+            return null;
         }
 
         @Override
@@ -157,5 +168,11 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
+    }
+
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }
