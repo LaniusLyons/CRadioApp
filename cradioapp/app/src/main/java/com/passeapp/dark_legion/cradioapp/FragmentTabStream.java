@@ -1,6 +1,7 @@
 package com.passeapp.dark_legion.cradioapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -36,7 +37,7 @@ public class FragmentTabStream extends Fragment {
     private ImageButton btnPlay;
     private ImageButton btnStop;
     private MediaPlayer mediaPlayer;
-    private String streamURL = "http://158.69.160.72:9934/stream?type=http&nocache=11";
+    private String streamURL = "http://216.158.236.150:9934/stream.mp3";
     public static boolean prepared = false;
     public static boolean started = false;
 
@@ -79,31 +80,43 @@ public class FragmentTabStream extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_fragment_tab_stream, container, false);
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        //mediaPlayer = new MediaPlayer();
+        //mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         btnPlay = (ImageButton)view.findViewById(R.id.playBtn);
         btnStop = (ImageButton)view.findViewById(R.id.stopBtn);
-        btnPlay.setEnabled(false);
-        btnStop.setEnabled(false);
+        btnPlay.setEnabled(true);
+        btnStop.setEnabled(true);
 
-        new PlayerTask().execute(streamURL);
+        //new PlayerTask().execute();
 
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!started){
+                /*if(!started){
                     started = true;
+                    MainActivity.isPlayingStream = true;
                     mediaPlayer.start();
-                }
+                }*/
+                if(MainActivity.isReadySteam){
+                    Intent serviceIntent = new Intent(getContext(),RadioService.class);
+                    serviceIntent.setAction(Constants.ACTION.PLAY_ACTION);
+                    getContext().startService(serviceIntent);
+                };
             }
         });
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(started){
+                /*if(started){
                     started = false;
+                    MainActivity.isPlayingStream = false;
                     mediaPlayer.pause();
+                }*/
+                if(MainActivity.isReadySteam){
+                    Intent serviceIntent = new Intent(getContext(),RadioService.class);
+                    serviceIntent.setAction(Constants.ACTION.PAUSE_ACTION);
+                    getContext().startService(serviceIntent);
                 }
             }
         });
@@ -161,14 +174,7 @@ public class FragmentTabStream extends Fragment {
 
         @Override
         protected Boolean doInBackground(String... strings) {
-            try {
-                mediaPlayer.setDataSource(strings[0]);
-                mediaPlayer.prepare();
-                prepared = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return prepared;
+            return RadioService.prepared;
         }
     }
 
@@ -176,7 +182,7 @@ public class FragmentTabStream extends Fragment {
     public void onPause() {
         super.onPause();
         if(started){
-            mediaPlayer.pause();
+            //mediaPlayer.pause();
         }
     }
 
@@ -184,7 +190,7 @@ public class FragmentTabStream extends Fragment {
     public void onResume() {
         super.onResume();
         if(started){
-            mediaPlayer.start();
+            //mediaPlayer.start();
         }
     }
 
@@ -192,7 +198,7 @@ public class FragmentTabStream extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         if(prepared){
-            mediaPlayer.release();
+            //mediaPlayer.release();
         }
     }
 }
