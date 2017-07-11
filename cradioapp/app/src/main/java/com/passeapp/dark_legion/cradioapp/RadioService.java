@@ -1,9 +1,9 @@
 package com.passeapp.dark_legion.cradioapp;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -11,6 +11,8 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 
 import java.io.IOException;
 
@@ -20,6 +22,9 @@ public class RadioService extends Service{
     private String streamURL = "http://216.158.236.150:9934/stream.mp3";
     public static boolean prepared = false;
     public static boolean started = false;
+    private boolean isPausedInCall = false;
+    private PhoneStateListener phoneStateListener;
+    private TelephonyManager telephonyManager;
 
     @Nullable
     @Override
@@ -36,6 +41,32 @@ public class RadioService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        phoneStateListener = new PhoneStateListener(){
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                switch (state){
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                        break;
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        if(mediaPlayer != null && prepared){
+                            mediaPlayer.pause();
+                            isPausedInCall = true;
+                        }
+                        break;
+                    case TelephonyManager.CALL_STATE_IDLE:
+                        if(mediaPlayer != null && prepared){
+                            if(isPausedInCall){
+                                isPausedInCall = false;
+                                mediaPlayer.start();
+                            }
+                        }
+                        break;
+                }
+            }
+        };
+        telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_CALL_STATE);
 
         if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
             generateMusicStreamNotification();
@@ -75,7 +106,16 @@ public class RadioService extends Service{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mediaPlayer.release();
+        if(mediaPlayer != null){
+            if(started){
+                mediaPlayer.stop();
+            }
+            mediaPlayer.release();
+
+        }
+        if(phoneStateListener != null){
+            telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_NONE);
+        }
     }
 
 
@@ -83,17 +123,19 @@ public class RadioService extends Service{
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            MainActivity.isReadySteam = aBoolean;
+            MainActivity.isReadyStream = aBoolean;
         }
 
         @Override
         protected Boolean doInBackground(String... strings) {
-            try {
-                mediaPlayer.setDataSource(streamURL);
-                mediaPlayer.prepare();
-                prepared = true;
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(OnlineConnectClass.isOnline(getApplicationContext())){
+                try {
+                    mediaPlayer.setDataSource(streamURL);
+                    mediaPlayer.prepare();
+                    prepared = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             return prepared;
         }

@@ -1,12 +1,11 @@
 package com.passeapp.dark_legion.cradioapp;
 
 
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -37,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
      */
     private ViewPager mViewPager;
 
-    public static boolean isReadySteam = false;
+    public static boolean isReadyStream = false;
 
     private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -205,9 +204,13 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
             serviceIntent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
             startService(serviceIntent);
         }else{
-            Intent serviceIntent = new Intent(this,RadioService.class);
-            serviceIntent.setAction(Constants.ACTION.MAIN_ACTION);
-            startService(serviceIntent);
+            if(OnlineConnectClass.isOnline(this)){
+                Intent serviceIntent = new Intent(this,RadioService.class);
+                serviceIntent.setAction(Constants.ACTION.MAIN_ACTION);
+                startService(serviceIntent);
+            }else{
+                Snackbar.make(mViewPager,"No dispones de conexion a Internet. Intentalo mas tarde",Snackbar.LENGTH_INDEFINITE).show();
+            }
         }
     }
 

@@ -2,7 +2,6 @@ package com.passeapp.dark_legion.cradioapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -12,8 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-
-import java.io.IOException;
 
 
 /**
@@ -98,7 +95,7 @@ public class FragmentTabStream extends Fragment {
                     MainActivity.isPlayingStream = true;
                     mediaPlayer.start();
                 }*/
-                if(MainActivity.isReadySteam){
+                if(MainActivity.isReadyStream && OnlineConnectClass.isOnline(getContext())){
                     Intent serviceIntent = new Intent(getContext(),RadioService.class);
                     serviceIntent.setAction(Constants.ACTION.PLAY_ACTION);
                     getContext().startService(serviceIntent);
@@ -113,7 +110,7 @@ public class FragmentTabStream extends Fragment {
                     MainActivity.isPlayingStream = false;
                     mediaPlayer.pause();
                 }*/
-                if(MainActivity.isReadySteam){
+                if(MainActivity.isReadyStream && OnlineConnectClass.isOnline(getContext())){
                     Intent serviceIntent = new Intent(getContext(),RadioService.class);
                     serviceIntent.setAction(Constants.ACTION.PAUSE_ACTION);
                     getContext().startService(serviceIntent);
