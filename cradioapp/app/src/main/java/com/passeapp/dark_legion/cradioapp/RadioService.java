@@ -3,8 +3,10 @@ package com.passeapp.dark_legion.cradioapp;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -25,6 +27,7 @@ public class RadioService extends Service{
     private boolean isPausedInCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
+    private int headsetSwitch = 1;
 
     @Nullable
     @Override
@@ -36,8 +39,35 @@ public class RadioService extends Service{
     public void onCreate() {
         super.onCreate();
         //generateMusicStreamNotification();
+        registerReceiver(headsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
 
     }
+
+    private BroadcastReceiver headsetReceiver = new BroadcastReceiver() {
+        private boolean headsetConnected = false;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.hasExtra("state")){
+                if(headsetConnected && intent.getIntExtra("status",0)==1){
+                    headsetConnected = false;
+                    headsetSwitch = 0;
+                }else if(!headsetConnected && intent.getIntExtra("status",0)==1){
+                    headsetConnected = true;
+                    headsetSwitch = 1;
+                }
+            }
+
+            switch (headsetSwitch){
+                case 0:
+                    if(mediaPlayer != null && prepared){
+                        mediaPlayer.pause();
+                    }
+                    break;
+                case 1:
+                    break;
+            }
+        }
+    };
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -116,6 +146,8 @@ public class RadioService extends Service{
         if(phoneStateListener != null){
             telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_NONE);
         }
+
+        unregisterReceiver(headsetReceiver);
     }
 
 
