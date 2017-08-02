@@ -163,36 +163,39 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         private void handleStorage(ArrayList<SponsorsClass> sponsors){
             if(!sponsors.isEmpty()){
                 for (SponsorsClass sp:sponsors) {
-                    Picasso.with(getContext())
-                            .load(sp.getImageLink())
-                            .into(getTarget(sp.getName()));
+                    ContextWrapper cw = new ContextWrapper(getContext());
+                    // path to /data/data/yourapp/app_data/imageDir
+                    File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+                    File file = new File(directory,sp.getName()+".png");
+                    if(!file.exists()){
+                        Picasso.with(getContext())
+                                .load(sp.getImageLink())
+                                .into(getTarget(file.getPath()));
+                    }
                 }
             }
         }
 
-        private Target getTarget(final String name){
+        private Target getTarget(final String path){
             Target target = new Target(){
-                ContextWrapper cw = new ContextWrapper(getContext());
-                // path to /data/data/yourapp/app_data/imageDir
-                final File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-
                 @Override
                 public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
                     new Thread(new Runnable() {
 
                         @Override
                         public void run() {
-
-                            File file = new File(directory,name+".png");
+                            File file = new File(path);
                             //File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
-                            try {
-                                file.createNewFile();
-                                FileOutputStream ostream = new FileOutputStream(file);
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
-                                ostream.flush();
-                                ostream.close();
-                            } catch (IOException e) {
-                                Log.e("IOException", e.getLocalizedMessage());
+                            if(file.exists()){
+                                try {
+                                    file.createNewFile();
+                                    FileOutputStream ostream = new FileOutputStream(file);
+                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                    ostream.flush();
+                                    ostream.close();
+                                } catch (IOException e) {
+                                    Log.e("IOException", e.getLocalizedMessage());
+                                }
                             }
                         }
                     }).start();
