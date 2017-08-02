@@ -1,12 +1,30 @@
 package com.passeapp.dark_legion.cradioapp;
 
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -28,6 +46,8 @@ public class FragmentTabSponsors extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    private GridView sponsorsListLayout;
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -58,13 +78,20 @@ public class FragmentTabSponsors extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        try {
+            new RenderSponsorTask().execute();
+        }catch (Exception e){
+            Log.e("render task fail",e.getLocalizedMessage());
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
+        View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
+        this.sponsorsListLayout = (GridView) fragmentView.findViewById(R.id.sponsorsListLayout);
+        return fragmentView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -105,4 +132,134 @@ public class FragmentTabSponsors extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+    private class RenderSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> {
+
+        @Override
+        protected Void doInBackground(ArrayList<SponsorsClass>... arrayLists) {
+            renderSponsors();
+            return null;
+        }
+
+        private void renderSponsors(){
+            if(OnlineConnectClass.isOnline(getContext())){
+                MainActivity.sponsorsList = MainActivity.database.getSponsorsRows();
+            }
+            if(!MainActivity.sponsorsList.isEmpty()){
+                sponsorsListLayout.setAdapter(new GridAdapter());
+                sponsorsListLayout.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        if(OnlineConnectClass.isOnline(getContext())){
+
+                        }else {
+                            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
+                        }
+                        return false;
+                    }
+                });
+            }
+        }
+
+        private void handleStorage(ArrayList<>){
+            Picasso.with(getContext())
+                    .load("http://blog.concretesolutions.com.br/wp-content/uploads/2015/04/Android1.png")
+                    .into(getTarget(url));
+        }
+
+        private String saveToInternalStorage(Bitmap bitmapImage){
+            ContextWrapper cw = new ContextWrapper(getContext());
+            // path to /data/data/yourapp/app_data/imageDir
+            File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+            // Create imageDir
+            File mypath=new File(directory,"profile.jpg");
+
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(mypath);
+                // Use the compress method on the BitMap object to write image to the OutputStream
+                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return directory.getAbsolutePath();
+        }
+
+    }
+
+    class GridAdapter extends BaseAdapter {
+        @Override
+        public int getCount() {
+            return MainActivity.sponsorsList.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return MainActivity.sponsorsList.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return MainActivity.sponsorsList.get(i).get_id();
+        }
+
+        @Override
+        public View getView(int i, View convertView, ViewGroup viewGroup) {
+            View view = convertView;
+
+            if (view == null) {
+                view = getActivity().getLayoutInflater().inflate(R.layout.custom_grid_element,null);
+            }
+
+            ImageView icon = (ImageView)view.findViewById(R.id.icono);
+            SponsorsClass aux = (SponsorsClass) getItem(i);
+            String img = "";
+            byte[] decodedString = Base64.decode(img, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+            // 0.75 if it's LDPI
+            // 1.0 if it's MDPI
+            // 1.5 if it's HDPI
+            // 2.0 if it's XHDPI
+            // 3.0 if it's XXHDPI
+            // 4.0 if it's XXXHDPI
+            int iconSizeHeight;
+            int iconSizeWidth;
+            Float density = MainActivity.density;
+            if(density <= 0.75f){
+                iconSizeHeight = 170;
+                iconSizeWidth = 100;
+            }else if( density > 0.75f && density <= 1.0f){
+                iconSizeHeight = 200;
+                iconSizeWidth = 150;
+            }else if( density > 1.0f && density <= 1.5f){
+                iconSizeHeight = 220;
+                iconSizeWidth = 165;
+            }else if( density > 1.5f && density <= 2.0f){
+                iconSizeHeight = 340;
+                iconSizeWidth = 260;
+            }else if( density > 2.0f && density <= 3.0f){
+                iconSizeHeight = 440;
+                iconSizeWidth = 350;
+            }else if( density > 3.0f && density <= 4.0f){
+                iconSizeHeight = 500;
+                iconSizeWidth = 400;
+            }else{
+                iconSizeHeight = 450;
+                iconSizeWidth = 345;
+            }
+            icon.setImageBitmap(Bitmap.createScaledBitmap(decodedByte, iconSizeWidth, iconSizeHeight, false));
+            return view;
+        }
+
+    }
+
+
 }

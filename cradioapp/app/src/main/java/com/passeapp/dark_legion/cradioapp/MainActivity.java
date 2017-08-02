@@ -54,8 +54,9 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     private String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     public String feedLink = "http://llegaraqui.com/feed/json";
-    private AppDataBase database;
-    private ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
+    public static AppDataBase database;
+    public static ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
+    public static Float density;
 
     private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -97,8 +98,10 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
             }
         });*/
         initDB();
-        if(hasPermissions()){
-            new getSponsorsTask().execute(feedLink);
+        density = getResources().getDisplayMetrics().density;
+
+        if(hasPermissions() && OnlineConnectClass.isOnline(this)){
+            new GetSponsorsTask().execute(feedLink);
         }else{
             requestPerm();
         }
@@ -144,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
 
         if(allowed){
             Log.i("permissions","permisos aceptados");
-            new getSponsorsTask().execute(feedLink);
+            new GetSponsorsTask().execute(feedLink);
         }else{
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
@@ -294,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         super.onDestroy();
     }
 
-    private class getSponsorsTask extends AsyncTask<String,Integer,ArrayList<String>> {
+    private class GetSponsorsTask extends AsyncTask<String,Integer,ArrayList<String>> {
 
 
         @Override
@@ -319,11 +322,12 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(aux.getString("name"),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
+                    SponsorsClass sponsor = new SponsorsClass(i,aux.getString("id"),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
                     sponsorsList.add(sponsor);
                 }
-                addingSponsorsToDB(sponsorsList);
-
+                if(!sponsorsList.isEmpty()){
+                    addingSponsorsToDB(sponsorsList);
+                }
 
             } catch (JSONException e) {
                 Log.e("error en json parse",e.getLocalizedMessage());
@@ -341,7 +345,5 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         }
     }
 
-
-    
 
 }

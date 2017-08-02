@@ -3,6 +3,7 @@ package com.passeapp.dark_legion.cradioapp;
 
 public class SponsorsClass {
 
+    private int _id;
     private String name;
     private String link;
     private Double lat;
@@ -10,13 +11,23 @@ public class SponsorsClass {
     private String address;
     private String imageLink;
 
-    public SponsorsClass(String name, String link, Double lat, Double lon, String address, String imageLink) {
+    public SponsorsClass(int _id,String name, String link, Double lat, Double lon, String address, String imageLink) {
+        this._id = _id;
         this.name = name;
         this.link = link;
         this.lat = lat;
         this.lon = lon;
         this.address = address;
         this.imageLink = imageLink;
+    }
+
+
+    public int get_id() {
+        return _id;
+    }
+
+    public void set_id(int _id) {
+        this._id = _id;
     }
 
     public String getName() {
@@ -65,5 +76,13 @@ public class SponsorsClass {
 
     public void setImageLink(String imageLink) {
         this.imageLink = imageLink;
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (obj == this) return true;
+        if (!(obj instanceof SponsorsClass)) return false;
+        SponsorsClass o = (SponsorsClass) obj;
+        return o.getName() == this.getName();
     }
 }

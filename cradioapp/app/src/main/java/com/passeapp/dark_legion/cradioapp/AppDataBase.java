@@ -7,10 +7,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+
 public class AppDataBase extends SQLiteOpenHelper{
 
     SQLiteDatabase db;
-    String sqlCreate = "CREATE TABLE Sponsor (name TEXT, link TEXT, lat TEXT, lon TEXT, address TEXT, imageLink TEXT)";
+    String sqlCreate = "CREATE TABLE Sponsor (id INTEGER, name TEXT, link TEXT, lat TEXT, lon TEXT, address TEXT, imageLink TEXT)";
 
 
     public AppDataBase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -36,7 +38,8 @@ public class AppDataBase extends SQLiteOpenHelper{
         cv.put("lon",sponsor.getLon().toString());
         cv.put("address",sponsor.getAddress());
         cv.put("imageLink",sponsor.getImageLink());
-        sqLiteDatabase.insert("Sponsor",null, cv);
+        db = this.getWritableDatabase();
+        db.insert("Sponsor",null, cv);
     }
 
     public Cursor getSponsor(String name) {
@@ -59,8 +62,23 @@ public class AppDataBase extends SQLiteOpenHelper{
 
 
     public boolean deleteAllSponsor(SQLiteDatabase sqLiteDatabase){
-        sqLiteDatabase = this.getWritableDatabase();
-        return sqLiteDatabase.delete("Sponsor",null, null) > 0;
+        db = this.getWritableDatabase();
+        return db.delete("Sponsor",null, null) > 0;
+    }
+
+    public ArrayList<SponsorsClass> getSponsorsRows(){
+        ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
+        this.db = this.getReadableDatabase();
+        Cursor c = this.db.rawQuery("SELECT * FROM Sponsor",null);
+        try {
+            while (c.moveToNext()) {
+                SponsorsClass aux = new SponsorsClass(c.getInt(0),c.getString(1),c.getString(2),Double.parseDouble(c.getString(3)),Double.parseDouble(c.getString(4)),c.getString(5),c.getString(6));
+                sponsorsList.add(aux);
+            }
+        } finally {
+            c.close();
+        }
+        return sponsorsList;
     }
 
 
