@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
 import android.util.Log;
@@ -20,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,7 +38,7 @@ import java.util.ArrayList;
  * Use the {@link FragmentTabSponsors#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FragmentTabSponsors extends Fragment {
+public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemLongClickListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -79,7 +82,7 @@ public class FragmentTabSponsors extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         try {
-            new RenderSponsorTask().execute();
+            new CachingSponsorTask().execute();
         }catch (Exception e){
             Log.e("render task fail",e.getLocalizedMessage());
         }
@@ -134,7 +137,13 @@ public class FragmentTabSponsors extends Fragment {
     }
 
 
-    private class RenderSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> {
+    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> {
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            new RenderSponsorTask().execute();
+        }
 
         @Override
         protected Void doInBackground(ArrayList<SponsorsClass>... arrayLists) {
@@ -147,28 +156,64 @@ public class FragmentTabSponsors extends Fragment {
                 MainActivity.sponsorsList = MainActivity.database.getSponsorsRows();
             }
             if(!MainActivity.sponsorsList.isEmpty()){
-                sponsorsListLayout.setAdapter(new GridAdapter());
-                sponsorsListLayout.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        if(OnlineConnectClass.isOnline(getContext())){
-
-                        }else {
-                            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
-                        }
-                        return false;
-                    }
-                });
+                handleStorage(MainActivity.sponsorsList);
             }
         }
 
-        private void handleStorage(ArrayList<>){
-            Picasso.with(getContext())
-                    .load("http://blog.concretesolutions.com.br/wp-content/uploads/2015/04/Android1.png")
-                    .into(getTarget(url));
+        private void handleStorage(ArrayList<SponsorsClass> sponsors){
+            if(!sponsors.isEmpty()){
+                for (SponsorsClass sp:sponsors) {
+                    Picasso.with(getContext())
+                            .load(sp.getImageLink())
+                            .into(getTarget(sp.getName()));
+                }
+            }
         }
 
-        private String saveToInternalStorage(Bitmap bitmapImage){
+        private Target getTarget(final String name){
+            Target target = new Target(){
+                ContextWrapper cw = new ContextWrapper(getContext());
+                // path to /data/data/yourapp/app_data/imageDir
+                final File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+
+                @Override
+                public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                    new Thread(new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            File file = new File(directory,name+".png");
+                            //File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
+                            try {
+                                file.createNewFile();
+                                FileOutputStream ostream = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                ostream.flush();
+                                ostream.close();
+                            } catch (IOException e) {
+                                Log.e("IOException", e.getLocalizedMessage());
+                            }
+                        }
+                    }).start();
+
+                }
+
+                @Override
+                public void onBitmapFailed(Drawable errorDrawable) {
+
+                }
+
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                }
+            };
+            return target;
+        }
+
+        /*
+        private String saveToInternalStorage(){
             ContextWrapper cw = new ContextWrapper(getContext());
             // path to /data/data/yourapp/app_data/imageDir
             File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
@@ -190,7 +235,7 @@ public class FragmentTabSponsors extends Fragment {
                 }
             }
             return directory.getAbsolutePath();
-        }
+        }*/
 
     }
 
@@ -220,9 +265,14 @@ public class FragmentTabSponsors extends Fragment {
 
             ImageView icon = (ImageView)view.findViewById(R.id.icono);
             SponsorsClass aux = (SponsorsClass) getItem(i);
-            String img = "";
-            byte[] decodedString = Base64.decode(img, Base64.DEFAULT);
-            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+
+            ContextWrapper cw = new ContextWrapper(getContext());
+            // path to /data/data/yourapp/app_data/imageDir
+            File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+            // Create imageDir
+            File file = new File(directory,aux.getImageLink()+".png");
+            Picasso.with(getContext()).load(file).into(icon);
+
 
             // 0.75 if it's LDPI
             // 1.0 if it's MDPI
@@ -255,11 +305,36 @@ public class FragmentTabSponsors extends Fragment {
                 iconSizeHeight = 450;
                 iconSizeWidth = 345;
             }
-            icon.setImageBitmap(Bitmap.createScaledBitmap(decodedByte, iconSizeWidth, iconSizeHeight, false));
+            icon.getLayoutParams().height = iconSizeHeight;
+            icon.getLayoutParams().width = iconSizeWidth;
             return view;
         }
 
     }
 
 
+    private class RenderSponsorTask extends AsyncTask<Void,Integer,Void>{
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            renderSponsorsLogos();
+            return null;
+        }
+
+        public void renderSponsorsLogos(){
+            sponsorsListLayout.setAdapter(new GridAdapter());
+            sponsorsListLayout.setOnItemLongClickListener(FragmentTabSponsors.this);
+        }
+    }
+
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+        if(OnlineConnectClass.isOnline(getContext())){
+
+        }else {
+            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
+        }
+        return false;
+    }
 }
