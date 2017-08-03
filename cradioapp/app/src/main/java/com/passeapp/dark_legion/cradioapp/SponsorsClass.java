@@ -13,7 +13,7 @@ public class SponsorsClass {
 
     public SponsorsClass(int _id,String name, String link, Double lat, Double lon, String address, String imageLink) {
         this._id = _id;
-        this.name = name;
+        this.name = name.replace("/","").replace(".","");
         this.link = link;
         this.lat = lat;
         this.lon = lon;
@@ -35,7 +35,7 @@ public class SponsorsClass {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.replace("/","").replace(".","");
     }
 
     public String getLink() {

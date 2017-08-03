@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class AppDataBase extends SQLiteOpenHelper{
 
     SQLiteDatabase db;
-    String sqlCreate = "CREATE TABLE Sponsor (id INTEGER, name TEXT, link TEXT, lat TEXT, lon TEXT, address TEXT, imageLink TEXT)";
+    String sqlCreate = "CREATE TABLE Sponsor (id INTEGER, name TEXT, link TEXT, lat TEXT, lon TEXT, address TEXT, imageLink TEXT, version INTEGER)";
 
 
     public AppDataBase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {

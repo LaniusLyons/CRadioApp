@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     private ViewPager mViewPager;
 
     public static boolean isReadyStream = false;
-    private String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     public String feedLink = "http://llegaraqui.com/feed/json";
     public static AppDataBase database;
     public static ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
@@ -100,61 +98,14 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         initDB();
         density = getResources().getDisplayMetrics().density;
 
-        if(hasPermissions() && OnlineConnectClass.isOnline(this)){
+        if(OnlineConnectClass.isOnline(this)){
             new GetSponsorsTask().execute(feedLink);
-        }else{
-            requestPerm();
         }
 
     }
 
     public void initDB(){
         this.database = new AppDataBase(this,"DataBase",null,1);
-    }
-
-    public boolean hasPermissions(){
-        int res=0;
-
-        for(String perms : permissions){
-            res = checkCallingOrSelfPermission(perms);
-            if(!(res== PackageManager.PERMISSION_GRANTED)){
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public void requestPerm(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            requestPermissions(permissions,REQUEST_CODE_ASK_PERMISSIONS);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        boolean allowed = true;
-        switch (requestCode){
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                for(int res : grantResults){
-                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
-                }
-                break;
-            default:
-                allowed = false;
-                break;
-        }
-
-        if(allowed){
-            Log.i("permissions","permisos aceptados");
-            new GetSponsorsTask().execute(feedLink);
-        }else{
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-                    Log.i("permissions","no hay permisos de caching");
-                }
-            }
-        }
     }
 
 
@@ -322,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i,aux.getString("id"),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
+                    SponsorsClass sponsor = new SponsorsClass(i,aux.getString("id").replace("/",""),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
                     sponsorsList.add(sponsor);
                 }
                 if(!sponsorsList.isEmpty()){

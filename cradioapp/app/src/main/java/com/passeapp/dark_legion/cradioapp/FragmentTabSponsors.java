@@ -1,14 +1,18 @@
 package com.passeapp.dark_legion.cradioapp;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
 import android.util.Log;
@@ -43,6 +47,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -51,6 +57,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
     private OnFragmentInteractionListener mListener;
 
     private GridView sponsorsListLayout;
+    private static Integer totalIcons = 0;
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -81,11 +88,6 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        try {
-            new CachingSponsorTask().execute();
-        }catch (Exception e){
-            Log.e("render task fail",e.getLocalizedMessage());
-        }
     }
 
     @Override
@@ -94,7 +96,65 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
         this.sponsorsListLayout = (GridView) fragmentView.findViewById(R.id.sponsorsListLayout);
+        if(hasPermissions()) {
+            executeCachingTask();
+        }else{
+            requestPerm();
+        }
         return fragmentView;
+    }
+
+    public void executeCachingTask(){
+        try {
+            new CachingSponsorTask().execute();
+        }catch (Exception e){
+            Log.e("render task fail",e.getLocalizedMessage());
+        }
+    }
+
+    public boolean hasPermissions(){
+        int res=0;
+
+        for(String perms : permissions){
+            res = getActivity().checkCallingOrSelfPermission(perms);
+            if(!(res== PackageManager.PERMISSION_GRANTED)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void requestPerm(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            requestPermissions(permissions,REQUEST_CODE_ASK_PERMISSIONS);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        boolean allowed = true;
+        switch (requestCode){
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                for(int res : grantResults){
+                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
+                }
+                break;
+            default:
+                allowed = false;
+                break;
+        }
+
+        if(allowed){
+            Log.i("permissions","permisos aceptados");
+            executeCachingTask();
+        }else{
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+                    Log.i("permissions","no hay permisos de caching");
+                }
+            }
+        }
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -142,7 +202,10 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            new RenderSponsorTask().execute();
+            if(!MainActivity.sponsorsList.isEmpty()){
+                handleStorage(MainActivity.sponsorsList);
+            }
+            //new RenderSponsorTask().execute();
         }
 
         @Override
@@ -152,11 +215,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         }
 
         private void renderSponsors(){
-            if(OnlineConnectClass.isOnline(getContext())){
+            if(!OnlineConnectClass.isOnline(getContext())){
                 MainActivity.sponsorsList = MainActivity.database.getSponsorsRows();
-            }
-            if(!MainActivity.sponsorsList.isEmpty()){
-                handleStorage(MainActivity.sponsorsList);
             }
         }
 
@@ -167,7 +227,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                     // path to /data/data/yourapp/app_data/imageDir
                     File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
                     File file = new File(directory,sp.getName()+".png");
-                    if(!file.exists()){
+                    if(!file.exists() && !file.isDirectory()){
                         Picasso.with(getContext())
                                 .load(sp.getImageLink())
                                 .into(getTarget(file.getPath()));
@@ -175,6 +235,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                 }
             }
         }
+
 
         private Target getTarget(final String path){
             Target target = new Target(){
@@ -186,17 +247,16 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                         public void run() {
                             File file = new File(path);
                             //File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
-                            if(file.exists()){
-                                try {
-                                    file.createNewFile();
-                                    FileOutputStream ostream = new FileOutputStream(file);
-                                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
-                                    ostream.flush();
-                                    ostream.close();
-                                } catch (IOException e) {
-                                    Log.e("IOException", e.getLocalizedMessage());
-                                }
+                            try {
+                                file.createNewFile();
+                                FileOutputStream ostream = new FileOutputStream(file);
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
+                                ostream.flush();
+                                ostream.close();
+                            } catch (IOException e) {
+                                Log.e("IOException", e.getLocalizedMessage());
                             }
+                            totalIcons++;
                         }
                     }).start();
 
@@ -211,6 +271,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                 public void onPrepareLoad(Drawable placeHolderDrawable) {
 
                 }
+
+
             };
             return target;
         }
@@ -325,8 +387,10 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         }
 
         public void renderSponsorsLogos(){
-            sponsorsListLayout.setAdapter(new GridAdapter());
-            sponsorsListLayout.setOnItemLongClickListener(FragmentTabSponsors.this);
+            if(totalIcons == MainActivity.sponsorsList.size()){
+                sponsorsListLayout.setAdapter(new GridAdapter());
+                sponsorsListLayout.setOnItemLongClickListener(FragmentTabSponsors.this);
+            }
         }
     }
 
