@@ -42,7 +42,7 @@ import java.util.ArrayList;
  * Use the {@link FragmentTabSponsors#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemLongClickListener{
+public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemClickListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -57,6 +57,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
     private OnFragmentInteractionListener mListener;
 
     private GridView sponsorsListView;
+    private GridViewAdapter gridViewAdapter;
     private static Integer totalIcons = 0;
 
     public FragmentTabSponsors() {
@@ -88,6 +89,11 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        if(hasPermissions()) {
+            executeCachingTask();
+        }else{
+            requestPerm();
+        }
     }
 
     @Override
@@ -96,11 +102,6 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
         this.sponsorsListView = (GridView) fragmentView.findViewById(R.id.sponsorsListView);
-        if(hasPermissions()) {
-            renderSponsorsLogos();
-        }else{
-            requestPerm();
-        }
         return fragmentView;
     }
 
@@ -147,7 +148,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
         if(allowed){
             Log.i("permissions","permisos aceptados");
-            renderSponsorsLogos();
+            executeCachingTask();
         }else{
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
@@ -196,20 +197,39 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
         void onFragmentInteraction(Uri uri);
     }
 
+    public void renderSponsorsLogos(){
+        if(!MainActivity.sponsorsList.isEmpty()){
+            this.gridViewAdapter = new GridViewAdapter(getActivity().getApplicationContext(),MainActivity.sponsorsList);
+            sponsorsListView.setAdapter(gridViewAdapter);
+            sponsorsListView.setOnItemClickListener(FragmentTabSponsors.this);
+        }
+    }
 
-    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> implements CompleteListener{
+    /*
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+        if(OnlineConnectClass.isOnline(getContext())){
+            Toast.makeText(getContext(), "CLICK EN ITEM", Toast.LENGTH_LONG).show();
+        }else {
+            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
+        }
+        return false;
+    }*/
 
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        if(OnlineConnectClass.isOnline(getContext())){
+            Toast.makeText(getContext(), "CLICK EN ITEM", Toast.LENGTH_LONG).show();
+        }else {
+            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void>{
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            //if(!MainActivity.sponsorsList.isEmpty()){
-            //  handleStorage(MainActivity.sponsorsList,this);
-            //}
-            //new RenderSponsorTask().execute();
             renderSponsorsLogos();
-            /*synchronized (MainActivity.sponsorsList){
-                MainActivity.sponsorsList.notifyAll();
-            }*/
         }
 
         @Override
@@ -224,205 +244,5 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             }
         }
 
-        private void handleStorage(ArrayList<SponsorsClass> sponsors,CompleteListener listener){
-            if(!sponsors.isEmpty()){
-                for (SponsorsClass sp:sponsors) {
-                    ContextWrapper cw = new ContextWrapper(getContext());
-                    // path to /data/data/yourapp/app_data/imageDir
-                    File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-                    File file = new File(directory,sp.getName()+".png");
-                    if(!file.exists() && !file.isDirectory()){
-                        Picasso.with(getContext())
-                                .load(sp.getImageLink())
-                                .into(getTarget(file.getPath(),listener));
-                    }
-                }
-            }
-        }
-
-
-        private Target getTarget(final String path, final CompleteListener listener){
-            final CompleteListener completeListner = listener;
-            Target target = new Target(){
-                @Override
-                public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
-                    new Thread(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            File file = new File(path);
-                            //File file = new File(Environment.getExternalStorageDirectory().getPath() + "/" + url);
-                            try {
-                                file.createNewFile();
-                                FileOutputStream ostream = new FileOutputStream(file);
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, ostream);
-                                ostream.flush();
-                                ostream.close();
-                            } catch (IOException e) {
-                                Log.e("IOException", e.getLocalizedMessage());
-                            }
-                            FragmentTabSponsors.totalIcons++;
-                            sponsorsListView.notifyAll();
-                        }
-                    }).start();
-
-                    //listener.onComplete("holi");
-
-                    renderSponsorsLogos();
-
-                }
-
-                @Override
-                public void onBitmapFailed(Drawable errorDrawable) {
-
-                }
-
-                @Override
-                public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-                }
-
-
-            };
-            return target;
-        }
-
-        @Override
-        public void onComplete(String response) {
-            renderSponsorsLogos();
-        }
-
-        /*
-        private String saveToInternalStorage(){
-            ContextWrapper cw = new ContextWrapper(getContext());
-            // path to /data/data/yourapp/app_data/imageDir
-            File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-            // Create imageDir
-            File mypath=new File(directory,"profile.jpg");
-
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(mypath);
-                // Use the compress method on the BitMap object to write image to the OutputStream
-                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return directory.getAbsolutePath();
-        }*/
-
-    }
-
-    class GridAdapter extends BaseAdapter {
-        @Override
-        public int getCount() {
-            return MainActivity.sponsorsList.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return ((Object) MainActivity.sponsorsList.get(i));
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return MainActivity.sponsorsList.get(i).get_id();
-        }
-
-
-        @Override
-        public View getView(int i, View convertView, ViewGroup viewGroup) {
-            View view = convertView;
-
-            if (view == null) {
-                view = getActivity().getLayoutInflater().inflate(R.layout.custom_grid_element,null);
-            }
-
-            ImageView icon = (ImageView)view.findViewById(R.id.icono);
-            SponsorsClass aux = (SponsorsClass) getItem(i);
-
-            /*
-            ContextWrapper cw = new ContextWrapper(getContext());
-            // path to /data/data/yourapp/app_data/imageDir
-            File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-            // Create imageDir
-            File file = new File(directory,aux.getImageLink()+".png");
-            Picasso.with(getContext()).load(file).into(icon);
-            */
-            String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/8/87/Google_Chrome_icon_%282011%29.png";
-            if(aux.getImageLink() != "false"){
-                imageUrl = aux.getImageLink();
-            }
-            Picasso mPicasso = Picasso.with(getActivity());
-            mPicasso.setIndicatorsEnabled(true);
-            mPicasso.setDebugging(true);
-            mPicasso.load(R.mipmap.ic_launcher)
-                    .placeholder(R.mipmap.ic_launcher_round)
-                    .error(R.mipmap.ic_launcher)
-                    .noFade().resize(250,250)
-                    .centerCrop()
-                    .into(icon);
-
-            // 0.75 if it's LDPI
-            // 1.0 if it's MDPI
-            // 1.5 if it's HDPI
-            // 2.0 if it's XHDPI
-            // 3.0 if it's XXHDPI
-            // 4.0 if it's XXXHDPI
-            /*int iconSizeHeight;
-            int iconSizeWidth;
-            Float density = MainActivity.density;
-            if(density <= 0.75f){
-                iconSizeHeight = 170;
-                iconSizeWidth = 100;
-            }else if( density > 0.75f && density <= 1.0f){
-                iconSizeHeight = 200;
-                iconSizeWidth = 150;
-            }else if( density > 1.0f && density <= 1.5f){
-                iconSizeHeight = 220;
-                iconSizeWidth = 165;
-            }else if( density > 1.5f && density <= 2.0f){
-                iconSizeHeight = 340;
-                iconSizeWidth = 260;
-            }else if( density > 2.0f && density <= 3.0f){
-                iconSizeHeight = 440;
-                iconSizeWidth = 350;
-            }else if( density > 3.0f && density <= 4.0f){
-                iconSizeHeight = 500;
-                iconSizeWidth = 400;
-            }else{
-                iconSizeHeight = 450;
-                iconSizeWidth = 345;
-            }
-            icon.getLayoutParams().height = iconSizeHeight;
-            icon.getLayoutParams().width = iconSizeWidth;*/
-            return view;
-        }
-
-    }
-
-
-    public void renderSponsorsLogos(){
-        if(!MainActivity.sponsorsList.isEmpty()){
-            sponsorsListView.setAdapter(new GridAdapter());
-            sponsorsListView.setOnItemLongClickListener(FragmentTabSponsors.this);
-        }
-    }
-
-
-    @Override
-    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-        if(OnlineConnectClass.isOnline(getContext())){
-
-        }else {
-            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
-        }
-        return false;
     }
 }

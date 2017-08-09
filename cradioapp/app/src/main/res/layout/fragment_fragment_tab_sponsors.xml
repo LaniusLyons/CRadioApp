@@ -32,28 +32,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="5dp"
-            android:gravity="center"
-            android:layout_gravity="center">
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="vertical">
+            android:weightSum="1">
 
                 <GridView
                     android:id="@+id/sponsorsListView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:adjustViewBounds="true"
                     android:numColumns="2"
-                    android:stretchMode="spacingWidthUniform"
-                    android:verticalSpacing="10dp"
-                    android:scrollbars="vertical">
+                    android:verticalSpacing="25dp"
+                    android:horizontalSpacing="20dp"
+                    android:scrollbars="vertical"
+                    android:layout_weight="1">
 
                 </GridView>
-
-            </ScrollView>
 
         </TableRow>
 
