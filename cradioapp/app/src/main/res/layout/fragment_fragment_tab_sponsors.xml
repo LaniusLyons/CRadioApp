@@ -40,8 +40,8 @@
                 android:layout_height="match_parent"
                 android:scrollbars="vertical">
 
-                <GridLayout
-                    android:id="@+id/sponsorsList"
+                <GridView
+                    android:id="@+id/sponsorsListView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -51,7 +51,7 @@
                     android:verticalSpacing="10dp"
                     android:scrollbars="vertical">
 
-                </GridLayout>
+                </GridView>
 
             </ScrollView>
 

@@ -56,7 +56,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
     private OnFragmentInteractionListener mListener;
 
-    private GridView sponsorsListLayout;
+    private GridView sponsorsListView;
     private static Integer totalIcons = 0;
 
     public FragmentTabSponsors() {
@@ -95,9 +95,9 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
-        this.sponsorsListLayout = (GridView) fragmentView.findViewById(R.id.sponsorsListLayout);
+        this.sponsorsListView = (GridView) fragmentView.findViewById(R.id.sponsorsListView);
         if(hasPermissions()) {
-            executeCachingTask();
+            renderSponsorsLogos();
         }else{
             requestPerm();
         }
@@ -147,7 +147,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
         if(allowed){
             Log.i("permissions","permisos aceptados");
-            executeCachingTask();
+            renderSponsorsLogos();
         }else{
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
@@ -197,15 +197,19 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
     }
 
 
-    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> {
+    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void> implements CompleteListener{
 
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if(!MainActivity.sponsorsList.isEmpty()){
-                handleStorage(MainActivity.sponsorsList);
-            }
+            //if(!MainActivity.sponsorsList.isEmpty()){
+            //  handleStorage(MainActivity.sponsorsList,this);
+            //}
             //new RenderSponsorTask().execute();
+            renderSponsorsLogos();
+            /*synchronized (MainActivity.sponsorsList){
+                MainActivity.sponsorsList.notifyAll();
+            }*/
         }
 
         @Override
@@ -220,7 +224,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             }
         }
 
-        private void handleStorage(ArrayList<SponsorsClass> sponsors){
+        private void handleStorage(ArrayList<SponsorsClass> sponsors,CompleteListener listener){
             if(!sponsors.isEmpty()){
                 for (SponsorsClass sp:sponsors) {
                     ContextWrapper cw = new ContextWrapper(getContext());
@@ -230,14 +234,15 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                     if(!file.exists() && !file.isDirectory()){
                         Picasso.with(getContext())
                                 .load(sp.getImageLink())
-                                .into(getTarget(file.getPath()));
+                                .into(getTarget(file.getPath(),listener));
                     }
                 }
             }
         }
 
 
-        private Target getTarget(final String path){
+        private Target getTarget(final String path, final CompleteListener listener){
+            final CompleteListener completeListner = listener;
             Target target = new Target(){
                 @Override
                 public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -256,9 +261,14 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                             } catch (IOException e) {
                                 Log.e("IOException", e.getLocalizedMessage());
                             }
-                            totalIcons++;
+                            FragmentTabSponsors.totalIcons++;
+                            sponsorsListView.notifyAll();
                         }
                     }).start();
+
+                    //listener.onComplete("holi");
+
+                    renderSponsorsLogos();
 
                 }
 
@@ -275,6 +285,11 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
             };
             return target;
+        }
+
+        @Override
+        public void onComplete(String response) {
+            renderSponsorsLogos();
         }
 
         /*
@@ -312,13 +327,14 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
 
         @Override
         public Object getItem(int i) {
-            return MainActivity.sponsorsList.get(i);
+            return ((Object) MainActivity.sponsorsList.get(i));
         }
 
         @Override
         public long getItemId(int i) {
             return MainActivity.sponsorsList.get(i).get_id();
         }
+
 
         @Override
         public View getView(int i, View convertView, ViewGroup viewGroup) {
@@ -331,13 +347,27 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             ImageView icon = (ImageView)view.findViewById(R.id.icono);
             SponsorsClass aux = (SponsorsClass) getItem(i);
 
+            /*
             ContextWrapper cw = new ContextWrapper(getContext());
             // path to /data/data/yourapp/app_data/imageDir
             File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
             // Create imageDir
             File file = new File(directory,aux.getImageLink()+".png");
             Picasso.with(getContext()).load(file).into(icon);
-
+            */
+            String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/8/87/Google_Chrome_icon_%282011%29.png";
+            if(aux.getImageLink() != "false"){
+                imageUrl = aux.getImageLink();
+            }
+            Picasso mPicasso = Picasso.with(getActivity());
+            mPicasso.setIndicatorsEnabled(true);
+            mPicasso.setDebugging(true);
+            mPicasso.load(R.mipmap.ic_launcher)
+                    .placeholder(R.mipmap.ic_launcher_round)
+                    .error(R.mipmap.ic_launcher)
+                    .noFade().resize(250,250)
+                    .centerCrop()
+                    .into(icon);
 
             // 0.75 if it's LDPI
             // 1.0 if it's MDPI
@@ -345,7 +375,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
             // 2.0 if it's XHDPI
             // 3.0 if it's XXHDPI
             // 4.0 if it's XXXHDPI
-            int iconSizeHeight;
+            /*int iconSizeHeight;
             int iconSizeWidth;
             Float density = MainActivity.density;
             if(density <= 0.75f){
@@ -371,26 +401,17 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemL
                 iconSizeWidth = 345;
             }
             icon.getLayoutParams().height = iconSizeHeight;
-            icon.getLayoutParams().width = iconSizeWidth;
+            icon.getLayoutParams().width = iconSizeWidth;*/
             return view;
         }
 
     }
 
 
-    private class RenderSponsorTask extends AsyncTask<Void,Integer,Void>{
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            renderSponsorsLogos();
-            return null;
-        }
-
-        public void renderSponsorsLogos(){
-            if(totalIcons == MainActivity.sponsorsList.size()){
-                sponsorsListLayout.setAdapter(new GridAdapter());
-                sponsorsListLayout.setOnItemLongClickListener(FragmentTabSponsors.this);
-            }
+    public void renderSponsorsLogos(){
+        if(!MainActivity.sponsorsList.isEmpty()){
+            sponsorsListView.setAdapter(new GridAdapter());
+            sponsorsListView.setOnItemLongClickListener(FragmentTabSponsors.this);
         }
     }
 
