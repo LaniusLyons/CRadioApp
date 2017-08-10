@@ -40,19 +40,18 @@ public class GridViewAdapter extends BaseAdapter{
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
+
         ImageView img;
         if(view == null){
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.custom_grid_element, viewGroup, false);
-
-            /*img = new ImageView(context);
+            //LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            //view = inflater.inflate(R.layout.custom_grid_element, viewGroup, false);
+            img = new ImageView(context);
             view = img;
-            img.setPadding(10,10,10,10);*/
+            img.setPadding(10,10,10,10);
         }else{
-            //img = (ImageView) view;
-
+            img = (ImageView) view;
         }
-        ImageView imageView = (ImageView) view.findViewById(R.id.icono);
+        //ImageView imageView = (ImageView) view.findViewById(R.id.icono);
 
         // 0.75 if it's LDPI
         // 1.0 if it's MDPI
@@ -86,7 +85,7 @@ public class GridViewAdapter extends BaseAdapter{
             iconSizeWidth = 345;
         }
 
-        Picasso.with(context).load(items.get(i).getImageLink()).placeholder(R.drawable.broken).error(R.drawable.broken).resize(iconSizeWidth,iconSizeHeight).into(imageView);
-        return imageView;
+        Picasso.with(context).load(items.get(i).getImageLink()).placeholder(R.drawable.broken).error(R.drawable.broken).resize(iconSizeWidth,iconSizeHeight).into(img);
+        return img;
     }
 }

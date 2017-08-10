@@ -2,35 +2,21 @@ package com.passeapp.dark_legion.cradioapp;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.ContextWrapper;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.Toast;
-
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -205,21 +191,31 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         }
     }
 
-    /*
-    @Override
-    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-        if(OnlineConnectClass.isOnline(getContext())){
-            Toast.makeText(getContext(), "CLICK EN ITEM", Toast.LENGTH_LONG).show();
-        }else {
-            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
-        }
-        return false;
-    }*/
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         if(OnlineConnectClass.isOnline(getContext())){
-            Toast.makeText(getContext(), "CLICK EN ITEM", Toast.LENGTH_LONG).show();
+            SponsorsClass aux = MainActivity.sponsorsList.get(i);
+            if(aux.getLat()!=null && aux.getLon() !=null && aux.getAddress() != null){
+                try{
+                    Uri gmmIntentUri = Uri.parse("geo:"+aux.getLat().toString()+","+aux.getLon().toString()+"?q=" + Uri.encode(aux.getAddress()));
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                        startActivity(mapIntent);
+                    }else{
+                        String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
+                        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
+                        startActivity(intent);
+                    }
+                }catch (Exception e){
+                    String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
+                    startActivity(intent);
+                }
+            }else{
+                Toast.makeText(getContext(), "NADA QUE PRESENTAR", Toast.LENGTH_LONG).show();
+            }
         }else {
             Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
         }

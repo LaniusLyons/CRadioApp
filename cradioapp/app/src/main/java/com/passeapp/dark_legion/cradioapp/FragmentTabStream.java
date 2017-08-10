@@ -178,24 +178,15 @@ public class FragmentTabStream extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if(started){
-            //mediaPlayer.pause();
-        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if(started){
-            //mediaPlayer.start();
-        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(prepared){
-            //mediaPlayer.release();
-        }
     }
 }
