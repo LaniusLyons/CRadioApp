@@ -8,6 +8,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.passeapp.dark_legion.cradioapp.FragmentTabSponsors">
 
+
     <!-- TODO: Update blank fragment layout -->
     <TableLayout
         android:layout_width="match_parent"
@@ -28,6 +29,22 @@
                 android:textSize="20sp"
                 android:layout_margin="5dp"
                 android:layout_gravity="center"/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <ProgressBar
+                android:id="@+id/progress"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
         </TableRow>
 
         <TableRow

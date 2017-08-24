@@ -1,6 +1,9 @@
 package com.passeapp.dark_legion.cradioapp;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.github.paolorotolo.expandableheightlistview.ExpandableHeightListView;
@@ -49,7 +53,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     //private GridViewAdapter gridViewAdapter;
     private static Integer totalIcons = 0;
     private ExpandableHeightListView expandableListView;
-    private  ListViewAdapter listViewAdapter;
+    private ListViewAdapter listViewAdapter;
+    private ProgressBar progressBar;
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -80,11 +85,6 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        if(hasPermissions()) {
-            executeCachingTask();
-        }else{
-            requestPerm();
-        }
     }
 
     @Override
@@ -94,6 +94,14 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
         //this.sponsorsListView = (GridView) fragmentView.findViewById(R.id.sponsorsListView);
         this.expandableListView = (ExpandableHeightListView) fragmentView.findViewById(R.id.sponsorsListView);
+        this.progressBar = (ProgressBar) fragmentView.findViewById(R.id.progress);
+
+        if(hasPermissions()) {
+            executeCachingTask();
+        }else{
+            requestPerm();
+        }
+
         return fragmentView;
     }
 
@@ -232,10 +240,37 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         }
     }
 
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressBar.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+    }
+
     private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void>{
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            showProgress(false);
             renderSponsorsLogos();
         }
 
@@ -251,5 +286,9 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
             }
         }
 
+        @Override
+        protected void onPreExecute() {
+            showProgress(true);
+        }
     }
 }
