@@ -73,7 +73,7 @@ public class GridViewExample extends AppCompatActivity {
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i,aux.getString("id").replace("/",""),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
+                    SponsorsClass sponsor = new SponsorsClass(i,coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
                     MainActivity.sponsorsList.add(sponsor);
                 }
 

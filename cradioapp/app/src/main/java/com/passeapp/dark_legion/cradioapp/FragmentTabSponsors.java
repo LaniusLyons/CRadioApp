@@ -17,6 +17,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
+
+import com.github.paolorotolo.expandableheightlistview.ExpandableHeightListView;
+
 import java.util.ArrayList;
 
 
@@ -42,9 +45,11 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
     private OnFragmentInteractionListener mListener;
 
-    private GridView sponsorsListView;
-    private GridViewAdapter gridViewAdapter;
+    //private GridView sponsorsListView;
+    //private GridViewAdapter gridViewAdapter;
     private static Integer totalIcons = 0;
+    private ExpandableHeightListView expandableListView;
+    private  ListViewAdapter listViewAdapter;
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -87,7 +92,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
-        this.sponsorsListView = (GridView) fragmentView.findViewById(R.id.sponsorsListView);
+        //this.sponsorsListView = (GridView) fragmentView.findViewById(R.id.sponsorsListView);
+        this.expandableListView = (ExpandableHeightListView) fragmentView.findViewById(R.id.sponsorsListView);
         return fragmentView;
     }
 
@@ -185,9 +191,14 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
     public void renderSponsorsLogos(){
         if(!MainActivity.sponsorsList.isEmpty()){
-            this.gridViewAdapter = new GridViewAdapter(getActivity().getApplicationContext(),MainActivity.sponsorsList);
-            sponsorsListView.setAdapter(gridViewAdapter);
-            sponsorsListView.setOnItemClickListener(FragmentTabSponsors.this);
+            //this.gridViewAdapter = new GridViewAdapter(getActivity().getApplicationContext(),MainActivity.sponsorsList);
+            //sponsorsListView.setAdapter(gridViewAdapter);
+            //sponsorsListView.setOnItemClickListener(FragmentTabSponsors.this);
+
+            this.listViewAdapter = new ListViewAdapter(getActivity().getApplicationContext(),MainActivity.sponsorsList);
+            this.expandableListView.setAdapter(listViewAdapter);
+            this.expandableListView.setExpanded(true);
+            this.expandableListView.setOnItemClickListener(FragmentTabSponsors.this);
         }
     }
 

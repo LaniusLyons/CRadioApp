@@ -199,9 +199,9 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "AUSPICIANTES";
+                    return getResources().getString(R.string.lbl_tab1);
                 case 1:
-                    return "RADIO";
+                    return getResources().getString(R.string.lbl_tab2);
             }
             return null;
         }
@@ -270,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i,aux.getString("id").replace("/",""),aux.getString("url"),coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"));
+                    SponsorsClass sponsor = new SponsorsClass(i,coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
                     sponsorsList.add(sponsor);
                 }
                 if(!sponsorsList.isEmpty()){

@@ -6,13 +6,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
 import java.util.ArrayList;
 
 public class AppDataBase extends SQLiteOpenHelper{
 
     SQLiteDatabase db;
-    String sqlCreate = "CREATE TABLE Sponsor (id INTEGER, name TEXT, link TEXT, lat TEXT, lon TEXT, address TEXT, imageLink TEXT, version INTEGER)";
+    String sqlCreate = "CREATE TABLE Sponsor (id INTEGER, lat TEXT, lon TEXT, address TEXT, imageLink TEXT, title TEXT)";
 
 
     public AppDataBase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -32,12 +31,11 @@ public class AppDataBase extends SQLiteOpenHelper{
 
     public void setSponsor(SQLiteDatabase sqLiteDatabase, SponsorsClass sponsor){
         ContentValues cv = new ContentValues();
-        cv.put("name",sponsor.getName());
-        cv.put("link",sponsor.getLink());
         cv.put("lat",sponsor.getLat().toString());
         cv.put("lon",sponsor.getLon().toString());
         cv.put("address",sponsor.getAddress());
         cv.put("imageLink",sponsor.getImageLink());
+        cv.put("title",sponsor.getTitle());
         db = this.getWritableDatabase();
         db.insert("Sponsor",null, cv);
     }
@@ -45,7 +43,7 @@ public class AppDataBase extends SQLiteOpenHelper{
     public Cursor getSponsor(String name) {
         this.db = this.getReadableDatabase();
         String[] args = new String[]{name};
-        Cursor c = this.db.rawQuery("SELECT * FROM Sponsor WHERE name=?",args);
+        Cursor c = this.db.rawQuery("SELECT * FROM Sponsor WHERE title=?",args);
         c.moveToFirst();
         return c;
     }
@@ -57,7 +55,7 @@ public class AppDataBase extends SQLiteOpenHelper{
 
     public boolean deleteSponsor(SQLiteDatabase sqLiteDatabase, String name){
         sqLiteDatabase = this.getWritableDatabase();
-        return sqLiteDatabase.delete("Sponsor","name=?", new String[] { name }) > 0;
+        return sqLiteDatabase.delete("Sponsor","title=?", new String[] { name }) > 0;
     }
 
 
@@ -72,7 +70,7 @@ public class AppDataBase extends SQLiteOpenHelper{
         Cursor c = this.db.rawQuery("SELECT * FROM Sponsor",null);
         try {
             while (c.moveToNext()) {
-                SponsorsClass aux = new SponsorsClass(c.getInt(0),c.getString(1),c.getString(2),Double.parseDouble(c.getString(3)),Double.parseDouble(c.getString(4)),c.getString(5),c.getString(6));
+                SponsorsClass aux = new SponsorsClass(c.getInt(0),Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)),c.getString(3),c.getString(4),c.getString(5));
                 sponsorsList.add(aux);
             }
         } finally {
