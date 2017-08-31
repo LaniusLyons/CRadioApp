@@ -220,7 +220,73 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
+        final SponsorsClass aux = MainActivity.sponsorsList.get(i);
 
+        final Dialog dialog = new Dialog(getContext(),android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        dialog.setContentView(R.layout.custome_dialog);
+        dialog.setCancelable(true);
+
+        RelativeLayout relativeLayout = (RelativeLayout)dialog.findViewById(R.id.modalParentLayout);
+        relativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        TextView lblName = (TextView)dialog.findViewById(R.id.lblName);
+        TextView lblAddress = (TextView)dialog.findViewById(R.id.lblAddress);
+        ImageView sponsorLogo = (ImageView)dialog.findViewById(R.id.sponsorLogo);
+        lblName.setText(aux.getTitle());
+        lblAddress.setText(aux.getAddress());
+
+        Picasso.with(getContext()).load(aux.getImageLink()).error(R.drawable.ads).into(sponsorLogo);
+
+        Button visitBtn = (Button)dialog.findViewById(R.id.btnVisitUs);
+        Button goBtn = (Button)dialog.findViewById(R.id.btnGoMap);
+        visitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String link = aux.getLink();
+
+                if(link != "null" && link != "false" && link != " "){
+                    try{
+                        Intent intent = new Intent(Intent.ACTION_VIEW,Uri.parse(link));
+                        startActivity(intent);
+                    }catch (Exception e){
+                        Log.e("visit us","error abrir link en google");
+                    }
+                }
+            }
+        });
+        goBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+
+            public void onClick(View view) {
+                if(aux.getLat()!=null && aux.getLon() !=null && aux.getAddress() != null){
+                    try{
+                        Uri gmmIntentUri = Uri.parse("geo:"+aux.getLat().toString()+","+aux.getLon().toString()+"?q=" + Uri.encode(aux.getAddress()));
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }else{
+                            String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
+                            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
+                            startActivity(intent);
+                        }
+                    }catch (Exception e){
+                        String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
+                        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
+                        startActivity(intent);
+                    }
+                }else{
+                    Toast.makeText(getContext(), "NADA QUE PRESENTAR", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        dialog.show();
     }
 
     /**
