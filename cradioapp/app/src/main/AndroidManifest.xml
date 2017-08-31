@@ -32,9 +32,6 @@
 
         <service android:name=".RadioService" />
 
-        <activity android:name=".GridViewExample">
-
-        </activity>
     </application>
 
 </manifest>

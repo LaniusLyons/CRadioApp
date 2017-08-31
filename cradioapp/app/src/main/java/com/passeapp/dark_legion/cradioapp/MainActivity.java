@@ -245,16 +245,21 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         super.onDestroy();
     }
 
-    private class GetSponsorsTask extends AsyncTask<String,Integer,ArrayList<String>> {
+    private class GetSponsorsTask extends AsyncTask<String,Integer,ArrayList<SponsorsClass>> {
 
 
         @Override
-        protected ArrayList<String> doInBackground(String... strings) {
+        protected ArrayList<SponsorsClass> doInBackground(String... strings) {
             return getsSponsors(strings[0]);
         }
 
-        private ArrayList<String> getsSponsors(String link){
-            ArrayList<String> sponsorsLinks = new ArrayList<>();
+        @Override
+        protected void onPostExecute(ArrayList<SponsorsClass> strings) {
+            sponsorsList = strings;
+        }
+
+        private ArrayList<SponsorsClass> getsSponsors(String link){
+            ArrayList<SponsorsClass> sponsorsLinks = new ArrayList<>();
             try {
 
                 URL url = new URL(link);
@@ -270,11 +275,11 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i,coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
-                    sponsorsList.add(sponsor);
+                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
+                    sponsorsLinks.add(sponsor);
                 }
-                if(!sponsorsList.isEmpty()){
-                    addingSponsorsToDB(sponsorsList);
+                if(!sponsorsLinks.isEmpty()){
+                    addingSponsorsToDB(sponsorsLinks);
                 }
 
             } catch (JSONException e) {
@@ -286,9 +291,12 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         }
 
         private void addingSponsorsToDB(ArrayList<SponsorsClass> sponsors){
-            database.deleteAllSponsor(database.db);
-            for (SponsorsClass sponsor:sponsors) {
-                database.setSponsor(database.db,sponsor);
+            boolean status = database.deleteAllSponsor(database.db);
+            boolean status2 = database.deleteDBSponsor(database.db);
+            if(status || status2){
+                for (SponsorsClass sponsor:sponsors) {
+                    database.setSponsor(database.db,sponsor);
+                }
             }
         }
     }

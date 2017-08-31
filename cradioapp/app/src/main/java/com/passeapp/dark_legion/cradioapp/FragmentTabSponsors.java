@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,11 +19,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.paolorotolo.expandableheightlistview.ExpandableHeightListView;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -213,31 +219,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        if(OnlineConnectClass.isOnline(getContext())){
-            SponsorsClass aux = MainActivity.sponsorsList.get(i);
-            if(aux.getLat()!=null && aux.getLon() !=null && aux.getAddress() != null){
-                try{
-                    Uri gmmIntentUri = Uri.parse("geo:"+aux.getLat().toString()+","+aux.getLon().toString()+"?q=" + Uri.encode(aux.getAddress()));
-                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                    mapIntent.setPackage("com.google.android.apps.maps");
-                    if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                        startActivity(mapIntent);
-                    }else{
-                        String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
-                        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
-                        startActivity(intent);
-                    }
-                }catch (Exception e){
-                    String link = "https://www.google.com/maps/search/?api=1&query="+aux.getLat()+","+aux.getLon();
-                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,Uri.parse(link));
-                    startActivity(intent);
-                }
-            }else{
-                Toast.makeText(getContext(), "NADA QUE PRESENTAR", Toast.LENGTH_LONG).show();
-            }
-        }else {
-            Toast.makeText(getContext(), "CONEXION A INTERNET NO DISPONIBLE", Toast.LENGTH_LONG).show();
-        }
+
+
     }
 
     /**

@@ -5,12 +5,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.GridView;
-
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -73,7 +71,7 @@ public class GridViewExample extends AppCompatActivity {
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i,coors.getDouble("lat"),coors.getDouble("lng"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
+                    SponsorsClass sponsor = new SponsorsClass(i,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("link"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
                     MainActivity.sponsorsList.add(sponsor);
                 }
 

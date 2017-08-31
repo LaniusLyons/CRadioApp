@@ -15,6 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import java.io.IOException;
 
@@ -99,28 +100,34 @@ public class RadioService extends Service{
         telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_CALL_STATE);
 
         if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
+            Log.i("stream info","service STARTFOREGROUND_ACTION");
             generateMusicStreamNotification();
         } else if (intent.getAction().equals(Constants.ACTION.MAIN_ACTION)){
+            Log.i("stream info","service MAIN_ACTION");
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setLooping(true);
             new PlayerTask().execute();
 
         } else if (intent.getAction().equals(Constants.ACTION.PLAY_ACTION)) {
-            if(prepared && !started){
+            Log.i("stream info","service PLAY_ACTION");
+            if(prepared && !started && mediaPlayer != null){
                 mediaPlayer.start();
                 started = true;
             }
         } else if (intent.getAction().equals(Constants.ACTION.PAUSE_ACTION)) {
-            if(prepared && started){
+            Log.i("stream info","service PAUSE_ACTION");
+            if(prepared && started && mediaPlayer != null){
                 mediaPlayer.pause();
                 started = false;
             }
         } else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
+            Log.i("stream info","service STOPFOREGROUND_ACTION");
             stopForeground(true);
             //stopSelf();
         } else if (intent.getAction().equals(Constants.ACTION.CLOSE_ACTION)) {
-            if(prepared){
+            Log.i("stream info","service CLOSE_ACTION");
+            if(prepared && mediaPlayer != null){
                 mediaPlayer.release();
                 mediaPlayer = null;
                 prepared = false;
@@ -164,9 +171,10 @@ public class RadioService extends Service{
                 try {
                     mediaPlayer.setDataSource(streamURL);
                     mediaPlayer.prepare();
+                    Log.i("stream info","stream prepared");
                     prepared = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    Log.i("stream info","error stream "+ e.getLocalizedMessage());
                 }
             }
             return prepared;

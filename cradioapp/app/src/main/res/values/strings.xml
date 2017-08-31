@@ -6,6 +6,10 @@
     <string name="lbl_tab1">Auspiciantes</string>
     <string name="lbl_tab2">CRadio.ec</string>
 
+    <string name="modal_title">Información</string>
+    <string name="modal_btn_visit">Visitar</string>
+    <string name="modal_btn_map">Ir a mapa</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

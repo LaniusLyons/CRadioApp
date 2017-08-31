@@ -34,7 +34,6 @@ public class FragmentTabStream extends Fragment {
     private ImageButton btnPlay;
     private ImageButton btnStop;
     private MediaPlayer mediaPlayer;
-    private String streamURL = "http://216.158.236.150:9934/stream.mp3";
     public static boolean prepared = false;
     public static boolean started = false;
 

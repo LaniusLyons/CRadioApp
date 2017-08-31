@@ -6,17 +6,27 @@ public class SponsorsClass {
     private int _id;
     private Double lat;
     private Double lon;
+    private String link;
     private String address;
     private String imageLink;
     private String title;
 
-    public SponsorsClass(int _id, Double lat, Double lon, String address, String imageLink, String title) {
+    public SponsorsClass(int _id, Double lat, Double lon, String link, String address, String imageLink, String title) {
         this._id = _id;
         this.lat = lat;
         this.lon = lon;
+        this.link = link;
         this.address = address;
         this.imageLink = imageLink;
         this.title = title;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 
     public String getTitle() {
