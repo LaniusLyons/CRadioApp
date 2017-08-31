@@ -63,7 +63,7 @@
         android:textSize="18sp"
         android:layout_below="@+id/lblName"
         android:layout_centerHorizontal="true"
-        android:layout_marginLeft="20dp"
+        android:layout_marginLeft="30dp"
         android:layout_marginRight="20dp"/>
 
     <Button
@@ -76,7 +76,13 @@
         android:layout_centerVertical="true"
         android:layout_gravity="center"
         android:layout_marginTop="32dp"
-        android:text="@string/modal_btn_visit" />
+        android:text="@string/modal_btn_visit"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/buttonshape"
+        android:shadowColor="#A8A8A8"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="5"/>
 
     <Button
         android:id="@+id/btnGoMap"
@@ -86,6 +92,12 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginTop="17dp"
-        android:text="@string/modal_btn_map" />
+        android:text="@string/modal_btn_map"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/buttonshape"
+        android:shadowColor="#A8A8A8"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="5"/>
 
 </RelativeLayout>
