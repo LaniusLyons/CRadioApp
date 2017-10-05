@@ -19,6 +19,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import android.widget.TableLayout;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,10 +53,15 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     private ViewPager mViewPager;
 
     public static boolean isReadyStream = false;
-    public String feedLink = "http://llegaraqui.com/feed/json";
+    public static String feedLink = "http://llegaraqui.com/feed/json";
+    public static String contactLink = "http://llegaraqui.com/feed/json";
     public static AppDataBase database;
     public static ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
     public static Float density;
+    public static boolean is_contact_form_ready = false;
+    public static boolean has_contact_form = false;
+    public static Fragment fragment1;
+    public static Fragment fragment2;
 
     private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -109,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -119,9 +129,13 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+        Fragment fragment = null;
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            if(is_contact_form_ready){
+                has_contact_form = true;
+                fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.VISIBLE);
+            }
             return true;
         }
 
@@ -182,9 +196,11 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
             //return PlaceholderFragment.newInstance(position + 1);
             switch (position) {
                 case 0:
-                    return new FragmentTabSponsors();
+                    fragment1 = new FragmentTabSponsors();
+                    return fragment1;
                 case 1:
-                    return new FragmentTabStream();
+                    fragment2 = new FragmentTabStream();
+                    return fragment2;
             }
             return null;
         }
@@ -211,6 +227,16 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(has_contact_form){
+            has_contact_form = false;
+            fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.GONE);
+        }else{
+            super.onBackPressed();
+        }
     }
 
     @Override
