@@ -5,7 +5,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -29,11 +27,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.github.paolorotolo.expandableheightlistview.ExpandableHeightListView;
 import com.squareup.picasso.Picasso;
-import java.io.BufferedWriter;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
 
@@ -58,19 +51,10 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-
-    //private GridView sponsorsListView;
-    //private GridViewAdapter gridViewAdapter;
     private static Integer totalIcons = 0;
     private ExpandableHeightListView expandableListView;
     private ListViewAdapter listViewAdapter;
     private ProgressBar progressBar;
-    private EditText contactEmail;
-    private EditText contactSubject;
-    private EditText contactMessage;
-    private Button btnSend;
-    private Button btnCancel;
-    public ProgressDialog progressDialog;
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -109,11 +93,6 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         // Inflate the layout for this fragment
         View fragmentView = inflater.inflate(R.layout.fragment_fragment_tab_sponsors, container, false);
         this.expandableListView = (ExpandableHeightListView) fragmentView.findViewById(R.id.sponsorsListView);
-        this.contactEmail = (EditText) fragmentView.findViewById(R.id.register_email);
-        this.contactSubject = (EditText) fragmentView.findViewById(R.id.register_subject);
-        this.contactMessage = (EditText) fragmentView.findViewById(R.id.register_message);
-        this.btnSend = (Button) fragmentView.findViewById(R.id.btnSend);
-        this.btnCancel = (Button) fragmentView.findViewById(R.id.btnCancel);
         this.progressBar = (ProgressBar) fragmentView.findViewById(R.id.progress);
 
         if(hasPermissions()) {
@@ -121,66 +100,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         }else{
             requestPerm();
         }
-        init();
+
         return fragmentView;
-    }
-
-    public final static boolean isValidEmail(CharSequence target) {
-        if (target == null) {
-            return false;
-        } else {
-            return android.util.Patterns.EMAIL_ADDRESS.matcher(target).matches();
-        }
-    }
-
-    public void attemtpToContact(){
-        boolean validForm;
-        String email = this.contactEmail.getText().toString();
-        String subject = this.contactSubject.getText().toString();
-        String message = this.contactMessage.getText().toString();
-
-        if(!email.isEmpty() && !email.equals(" ") && isValidEmail(email)){
-            validForm = true;
-        }else{
-            validForm = false;
-            this.contactEmail.setError("Este campo es obligatorio y debe ser un email válido");
-        }
-
-        if(!subject.isEmpty() && !subject.equals(" ")){
-            validForm = true;
-        }else{
-            validForm = false;
-            this.contactSubject.setError("Este campo es obligatorio");
-        }
-
-        if(!message.isEmpty() && !message.equals(" ")){
-            validForm = true;
-        }else{
-            validForm = false;
-            this.contactMessage.setError("Este campo es obligatorio");
-        }
-
-        if(validForm){
-            new ContactTask().execute(email,subject,message);
-        }else{
-            Toast.makeText(getContext(),"TODOS LOS CAMPOS SON REQUERIDOS",Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public void init(){
-        this.btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MainActivity.fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.GONE);
-                clearInputs();
-            }
-        });
-        this.btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemtpToContact();
-            }
-        });
     }
 
     public void executeCachingTask(){
@@ -393,7 +314,6 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         protected void onPostExecute(Void aVoid) {
             showProgress(false);
             renderSponsorsLogos();
-            MainActivity.is_contact_form_ready = true;
         }
 
         @Override
@@ -414,81 +334,5 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         }
     }
 
-    public ProgressDialog createDialog(String message){
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setMessage(message);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setCancelable(false);
-        return  progressDialog;
-    }
 
-    private class ContactTask extends AsyncTask<String,Integer,Boolean>{
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressDialog = createDialog("Enviando...");
-            progressDialog.show();
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-            progressDialog.dismiss();
-            if(aBoolean){
-                clearInputs();
-                MainActivity.fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.GONE);
-                Toast.makeText(getContext(),"Mensaje enviado exitosamente",Toast.LENGTH_LONG).show();
-            }else{
-                Toast.makeText(getContext(),"Error al enviar el mensaje",Toast.LENGTH_LONG).show();
-            }
-        }
-
-        @Override
-        protected Boolean doInBackground(String... strings) {
-            String email = strings[0];
-            String subject = strings[1];
-            String message = strings[2];
-            return sendingContactForm(email,subject,message);
-        }
-
-        protected boolean sendingContactForm(String email, String subject, String message){
-            try{
-                URL url = new URL(MainActivity.contactLink);
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("USER-AGENT","Mozilla/5.0");
-                connection.setDoOutput(true);
-
-                Uri.Builder builder = new Uri.Builder()
-                        .appendQueryParameter("email", email)
-                        .appendQueryParameter("subject", subject)
-                        .appendQueryParameter("message",message);
-                String query = builder.build().getEncodedQuery();
-                OutputStream os = connection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-                writer.write(query);
-                writer.flush();
-                writer.close();
-                os.close();
-
-                int responseCode = connection.getResponseCode();
-                if(responseCode == 200){
-                    return true;
-                }else{
-                    return false;
-                }
-
-            }catch (Exception e){
-                Log.e("error contact",e.getLocalizedMessage());
-            }
-            return false;
-        }
-    }
-
-    public void clearInputs(){
-        this.contactEmail.setText("");
-        this.contactSubject.setText("");
-        this.contactMessage.setText("");
-    }
 }

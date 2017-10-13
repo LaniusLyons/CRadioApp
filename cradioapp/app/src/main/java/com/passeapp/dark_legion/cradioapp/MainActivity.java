@@ -35,7 +35,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements FragmentTabStream.OnFragmentInteractionListener, FragmentTabSponsors.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements FragmentTabStream.OnFragmentInteractionListener, FragmentTabSponsors.OnFragmentInteractionListener, FragmentTabContact.OnFragmentInteractionListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -54,14 +54,13 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
 
     public static boolean isReadyStream = false;
     public static String feedLink = "http://llegaraqui.com/feed/json";
-    public static String contactLink = "http://llegaraqui.com/feed/json";
+    public static String contactLink = "http://llegaraqui.com/mail.php";
     public static AppDataBase database;
     public static ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
     public static Float density;
-    public static boolean is_contact_form_ready = false;
-    public static boolean has_contact_form = false;
     public static Fragment fragment1;
     public static Fragment fragment2;
+    public static Fragment fragment3;
 
     private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -119,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        //getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -128,17 +127,6 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        Fragment fragment = null;
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            if(is_contact_form_ready){
-                has_contact_form = true;
-                fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.VISIBLE);
-            }
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -201,6 +189,9 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                 case 1:
                     fragment2 = new FragmentTabStream();
                     return fragment2;
+                case 2:
+                    fragment3 = new FragmentTabContact();
+                    return fragment3;
             }
             return null;
         }
@@ -208,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 2;
+            return 3;
         }
 
         @Override
@@ -218,6 +209,8 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                     return getResources().getString(R.string.lbl_tab1);
                 case 1:
                     return getResources().getString(R.string.lbl_tab2);
+                case 2:
+                    return getResources().getString(R.string.lbl_tab3);
             }
             return null;
         }
@@ -231,12 +224,7 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
 
     @Override
     public void onBackPressed() {
-        if(has_contact_form){
-            has_contact_form = false;
-            fragment1.getView().findViewById(R.id.contactFormLayout).setVisibility(View.GONE);
-        }else{
-            super.onBackPressed();
-        }
+        super.onBackPressed();
     }
 
     @Override
