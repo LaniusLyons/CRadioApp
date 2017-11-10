@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Llegaraquí</string>
+    <string name="app_name">Shop to Go</string>
     <string name="action_settings">CONTACTAR</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="lbl_sponsors">Nuestros auspiciantes:</string>

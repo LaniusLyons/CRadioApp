@@ -8,11 +8,15 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +31,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.github.paolorotolo.expandableheightlistview.ExpandableHeightListView;
 import com.squareup.picasso.Picasso;
+
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 
 
@@ -43,7 +63,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
     private static final int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
     // TODO: Rename and change types of parameters
@@ -55,6 +75,31 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     private ExpandableHeightListView expandableListView;
     private ListViewAdapter listViewAdapter;
     private ProgressBar progressBar;
+    public  static double longitude;
+    public  static double latitude;
+    public LocationManager lm;
+
+    private final LocationListener locationListener = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            longitude = location.getLongitude();
+            latitude = location.getLatitude();
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String s) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String s) {
+
+        }
+    };
 
     public FragmentTabSponsors() {
         // Required empty public constructor
@@ -106,9 +151,23 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
     public void executeCachingTask(){
         try {
-            new CachingSponsorTask().execute();
-        }catch (Exception e){
-            Log.e("render task fail",e.getLocalizedMessage());
+            lm = (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locationListener);
+        }catch (SecurityException e){
+            Log.e("requestLocation fail",e.getLocalizedMessage());
+        }
+        if(OnlineConnectClass.isOnline(getContext())){
+            try {
+                new GetSponsorsTask().execute(MainActivity.feedLink);
+            }catch (Exception e){
+                Log.e("render task fail",e.getLocalizedMessage());
+            }
+        }else {
+            if(getView() != null){
+                Snackbar.make(getView(),"Conexión a Internet no disponible.",Snackbar.LENGTH_LONG).show();
+            }else{
+                Toast.makeText(getContext(),"Conexión a Internet no disponible.",Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -215,9 +274,9 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
         final SponsorsClass aux = MainActivity.sponsorsList.get(i);
 
-        final Dialog dialog = new Dialog(getContext(),android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        final Dialog dialog = new Dialog(getContext(),android.R.style.Theme_Light_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.custome_dialog);
-        dialog.setCancelable(true);
+        dialog.setCancelable(false);
 
         RelativeLayout relativeLayout = (RelativeLayout)dialog.findViewById(R.id.modalParentLayout);
         relativeLayout.setOnClickListener(new View.OnClickListener() {
@@ -308,30 +367,93 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         }
     }
 
-    private class CachingSponsorTask extends AsyncTask<ArrayList<SponsorsClass>,Integer,Void>{
+    private class GetSponsorsTask extends AsyncTask<String,Integer,ArrayList<SponsorsClass>> {
+
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            showProgress(false);
-            renderSponsorsLogos();
-        }
-
-        @Override
-        protected Void doInBackground(ArrayList<SponsorsClass>... arrayLists) {
-            renderSponsors();
-            return null;
-        }
-
-        private void renderSponsors(){
-            if(!OnlineConnectClass.isOnline(getContext())){
-                MainActivity.sponsorsList = MainActivity.database.getSponsorsRows();
-            }
+        protected ArrayList<SponsorsClass> doInBackground(String... strings) {
+            return getsSponsors(strings[0]);
         }
 
         @Override
         protected void onPreExecute() {
             showProgress(true);
         }
+
+        @Override
+        protected void onPostExecute(ArrayList<SponsorsClass> strings) {
+            showProgress(false);
+            MainActivity.sponsorsList = strings;
+            renderSponsorsLogos();
+        }
+
+        private ArrayList<SponsorsClass> getsSponsors(String link){
+            ArrayList<SponsorsClass> sponsorsLinks = new ArrayList<>();
+            try {
+                double longitude;
+                double latitude;
+                LocationManager lm = (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
+                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if(location != null){
+                     longitude = location.getLongitude();
+                     latitude = location.getLatitude();
+                }else{
+                    longitude = FragmentTabSponsors.longitude;
+                    latitude = FragmentTabSponsors.latitude;
+                }
+
+                URL url = new URL(link);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
+                conn.setRequestMethod("GET");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+                conn.connect();
+                Uri.Builder builder = new Uri.Builder()
+                        .appendQueryParameter("lat", String.valueOf(latitude))
+                        .appendQueryParameter("lon", String.valueOf(longitude));
+                String query = builder.build().getEncodedQuery();
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                writer.write(query);
+                writer.flush();
+                writer.close();
+                os.close();
+
+                // Starts the query
+
+                int response = conn.getResponseCode();
+
+                InputStream in = conn.getInputStream();
+                String encoding = conn.getContentEncoding();
+                encoding = encoding == null ? "UTF-8" : encoding;
+                String body = IOUtils.toString(in, encoding);
+
+                JSONObject object = new JSONObject(body);
+                JSONArray items = object.getJSONArray("items");
+
+                for (int i=0;i<items.length();i++){
+                    JSONObject aux = items.getJSONObject(i);
+                    JSONObject coors = aux.getJSONObject("position");
+                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
+                    sponsorsLinks.add(sponsor);
+                }
+
+
+            } catch (JSONException e) {
+                Log.e("error en json parse",e.getLocalizedMessage());
+            } catch (SecurityException e) {
+                Log.e("error obtener links",e.getLocalizedMessage());
+            }catch (IOException e){
+                Log.e("error obtener links",e.getLocalizedMessage());
+            }catch (Exception e){
+                Log.e("error obtener links",e.getLocalizedMessage());
+            }
+
+            return  sponsorsLinks;
+        }
+
     }
 
 

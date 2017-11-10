@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
     private ViewPager mViewPager;
 
     public static boolean isReadyStream = false;
-    public static String feedLink = "http://llegaraqui.com/feed/json";
-    public static String contactLink = "http://llegaraqui.com/mail.php";
+    public static String feedLink = "http://www.llegaraqui.com/feed/json";
+    public static String contactLink = "http://www.llegaraqui.com/mail.php";
     public static AppDataBase database;
     public static ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
     public static Float density;
@@ -101,17 +101,9 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
                         .setAction("Action", null).show();
             }
         });*/
-        initDB();
+
         density = getResources().getDisplayMetrics().density;
 
-        if(OnlineConnectClass.isOnline(this)){
-            new GetSponsorsTask().execute(feedLink);
-        }
-
-    }
-
-    public void initDB(){
-        this.database = new AppDataBase(this,"DataBase",null,1);
     }
 
 
@@ -258,62 +250,5 @@ public class MainActivity extends AppCompatActivity implements FragmentTabStream
         stopService(new Intent(this,RadioService.class));
         super.onDestroy();
     }
-
-    private class GetSponsorsTask extends AsyncTask<String,Integer,ArrayList<SponsorsClass>> {
-
-
-        @Override
-        protected ArrayList<SponsorsClass> doInBackground(String... strings) {
-            return getsSponsors(strings[0]);
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<SponsorsClass> strings) {
-            sponsorsList = strings;
-        }
-
-        private ArrayList<SponsorsClass> getsSponsors(String link){
-            ArrayList<SponsorsClass> sponsorsLinks = new ArrayList<>();
-            try {
-
-                URL url = new URL(link);
-                URLConnection con = url.openConnection();
-                InputStream in = con.getInputStream();
-                String encoding = con.getContentEncoding();
-                encoding = encoding == null ? "UTF-8" : encoding;
-                String body = IOUtils.toString(in, encoding);
-
-                JSONObject object = new JSONObject(body);
-                JSONArray items = object.getJSONArray("items");
-
-                for (int i=0;i<items.length();i++){
-                    JSONObject aux = items.getJSONObject(i);
-                    JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
-                    sponsorsLinks.add(sponsor);
-                }
-                if(!sponsorsLinks.isEmpty()){
-                    addingSponsorsToDB(sponsorsLinks);
-                }
-
-            } catch (JSONException e) {
-                Log.e("error en json parse",e.getLocalizedMessage());
-            } catch (IOException e) {
-                Log.e("error obtener links",e.getLocalizedMessage());
-            }
-            return  sponsorsLinks;
-        }
-
-        private void addingSponsorsToDB(ArrayList<SponsorsClass> sponsors){
-            boolean status = database.deleteAllSponsor(database.db);
-            boolean status2 = database.deleteDBSponsor(database.db);
-            if(status || status2){
-                for (SponsorsClass sponsor:sponsors) {
-                    database.setSponsor(database.db,sponsor);
-                }
-            }
-        }
-    }
-
 
 }
