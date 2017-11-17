@@ -47,9 +47,11 @@ public class ListViewAdapter extends BaseAdapter {
 
         SponsorsClass sponsor = (SponsorsClass) getItem(i);
         TextView textView = (TextView) view.findViewById(R.id.lblSite);
+        TextView lblDistance = (TextView) view.findViewById(R.id.lblDistance);
         ImageView imageView = (ImageView) view.findViewById(R.id.iconSite);
 
         textView.setText(sponsor.getTitle());
+        lblDistance.setText(sponsor.getDistance());
 
         Picasso.with(context).load(items.get(i).getImageLink()).placeholder(R.drawable.ads).error(R.drawable.ads).into(imageView);
 

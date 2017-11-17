@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -175,8 +176,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         int res=0;
 
         for(String perms : permissions){
-            res = getActivity().checkCallingOrSelfPermission(perms);
-            if(!(res== PackageManager.PERMISSION_GRANTED)){
+            if(!(getActivity().checkCallingOrSelfPermission(perms)== PackageManager.PERMISSION_GRANTED)){
                 return false;
             }
         }
@@ -287,10 +287,15 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         });
 
         TextView lblName = (TextView)dialog.findViewById(R.id.lblName);
-        TextView lblAddress = (TextView)dialog.findViewById(R.id.lblAddress);
+        WebView webView = (WebView)dialog.findViewById(R.id.contentHtml);
+        String body = aux.getHtmlContent();
+        if(body != null && !body.isEmpty()){
+            String html = "<!DOCTYPE html><html><body>"+body+"</body></html>";
+
+            webView.loadData(html,"text/html; charset=utf-8","UTF-8");
+        }
         ImageView sponsorLogo = (ImageView)dialog.findViewById(R.id.sponsorLogo);
         lblName.setText(aux.getTitle());
-        lblAddress.setText(aux.getAddress());
 
         Picasso.with(getContext()).load(aux.getImageLink()).error(R.drawable.ads).into(sponsorLogo);
 
@@ -436,7 +441,10 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"));
+                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"),aux.getString("distance"));
+                    if(aux.has("content_html")){
+                        sponsor.setHtmlContent(aux.getString("content_html"));
+                    }
                     sponsorsLinks.add(sponsor);
                 }
 

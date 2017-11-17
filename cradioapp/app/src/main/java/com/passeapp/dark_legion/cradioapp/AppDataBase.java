@@ -82,7 +82,7 @@ public class AppDataBase extends SQLiteOpenHelper{
         Cursor c = this.db.rawQuery("SELECT * FROM Sponsor",null);
         try {
             while (c.moveToNext()) {
-                SponsorsClass aux = new SponsorsClass(c.getInt(0),Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)),c.getString(3),c.getString(4),c.getString(5),c.getString(6));
+                SponsorsClass aux = new SponsorsClass(c.getInt(0),Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)),c.getString(3),c.getString(4),c.getString(5),c.getString(6),null);
                 sponsorsList.add(aux);
             }
         } finally {

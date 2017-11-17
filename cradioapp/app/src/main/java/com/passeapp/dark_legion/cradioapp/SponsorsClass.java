@@ -1,6 +1,8 @@
 package com.passeapp.dark_legion.cradioapp;
 
 
+import java.text.DecimalFormat;
+
 public class SponsorsClass {
 
     private int _id;
@@ -10,8 +12,10 @@ public class SponsorsClass {
     private String address;
     private String imageLink;
     private String title;
+    private String distance;
+    private String htmlContent;
 
-    public SponsorsClass(int _id, Double lat, Double lon, String link, String address, String imageLink, String title) {
+    public SponsorsClass(int _id, Double lat, Double lon, String link, String address, String imageLink, String title,String distance) {
         this._id = _id;
         this.lat = lat;
         this.lon = lon;
@@ -19,10 +23,33 @@ public class SponsorsClass {
         this.address = address;
         this.imageLink = imageLink;
         this.title = title;
+        this.setDistance(distance);
+    }
+
+    public String getHtmlContent() {
+        return htmlContent;
+    }
+
+    public void setHtmlContent(String htmlContent) {
+        this.htmlContent = htmlContent;
     }
 
     public String getLink() {
         return link;
+    }
+
+    public String getStringDistance() {
+        DecimalFormat df = new DecimalFormat("#.##");
+        String aux = "Distancia: " + df.format(this.distance);
+        return aux;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
     }
 
     public void setLink(String link) {

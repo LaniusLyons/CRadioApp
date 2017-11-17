@@ -158,7 +158,8 @@
                         android:layout_weight="1"
                         android:text="@string/btnSend"
                         android:layout_margin="5dp"
-                        android:background="@color/colorPrimary"/>
+                        android:background="@color/colorPrimary"
+                        android:textColor="@color/white"/>
 
                 </LinearLayout>
             </TableRow>
