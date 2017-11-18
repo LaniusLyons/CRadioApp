@@ -49,7 +49,7 @@
         <WebView
             android:id="@+id/contentHtml"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_below="@id/lblName"
             android:layout_centerHorizontal="true"
             android:layout_gravity="center"

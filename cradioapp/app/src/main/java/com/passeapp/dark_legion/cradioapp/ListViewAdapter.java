@@ -51,7 +51,7 @@ public class ListViewAdapter extends BaseAdapter {
         ImageView imageView = (ImageView) view.findViewById(R.id.iconSite);
 
         textView.setText(sponsor.getTitle());
-        lblDistance.setText(sponsor.getDistance());
+        lblDistance.setText(sponsor.getStringDistance());
 
         Picasso.with(context).load(items.get(i).getImageLink()).placeholder(R.drawable.ads).error(R.drawable.ads).into(imageView);
 

@@ -39,8 +39,10 @@ public class SponsorsClass {
     }
 
     public String getStringDistance() {
-        DecimalFormat df = new DecimalFormat("#.##");
-        String aux = "Distancia: " + df.format(this.distance);
+        DecimalFormat df = new DecimalFormat("#.00");
+        Double distance = Double.valueOf(this.distance);
+
+        String aux = "Distancia: " + df.format(distance) + "km";
         return aux;
     }
 

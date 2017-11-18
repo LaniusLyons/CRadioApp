@@ -22,7 +22,8 @@ import java.io.IOException;
 
 public class RadioService extends Service{
     private MediaPlayer mediaPlayer;
-    private String streamURL = "http://vm1.hostingcaminointernet.com:9934/stream.mp3";
+    //private String streamURL = "http://vm1.hostingcaminointernet.com:9934/stream.mp3";
+    private String streamURL = "https://globalstreaming.com.ve/reproductor/video.php?p=1&s=cradio2";
     public static boolean prepared = false;
     public static boolean started = false;
     private boolean isPausedInCall = false;

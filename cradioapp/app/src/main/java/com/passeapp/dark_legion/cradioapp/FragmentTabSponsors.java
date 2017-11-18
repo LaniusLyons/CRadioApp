@@ -76,8 +76,8 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
     private ExpandableHeightListView expandableListView;
     private ListViewAdapter listViewAdapter;
     private ProgressBar progressBar;
-    public  static double longitude;
-    public  static double latitude;
+    public  static double longitude = -79.899969;
+    public  static double latitude = -2.146955;
     public LocationManager lm;
 
     private final LocationListener locationListener = new LocationListener() {
@@ -209,7 +209,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
             executeCachingTask();
         }else{
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if(shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+                if(shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
                     Log.i("permissions","no hay permisos de caching");
                 }
             }
@@ -409,9 +409,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
 
                 URL url = new URL(link);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestProperty("User-Agent",
-                        "Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
-                conn.setRequestMethod("GET");
+                conn.setRequestMethod("POST");
                 conn.setDoInput(true);
                 conn.setDoOutput(true);
                 conn.connect();
