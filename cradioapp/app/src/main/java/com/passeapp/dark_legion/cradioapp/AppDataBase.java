@@ -76,7 +76,7 @@ public class AppDataBase extends SQLiteOpenHelper{
         }
     }
 
-     public ArrayList<SponsorsClass> getSponsorsRows(){
+/*     public ArrayList<SponsorsClass> getSponsorsRows(){
         ArrayList<SponsorsClass> sponsorsList = new ArrayList<>();
         this.db = this.getReadableDatabase();
         Cursor c = this.db.rawQuery("SELECT * FROM Sponsor",null);
@@ -89,6 +89,6 @@ public class AppDataBase extends SQLiteOpenHelper{
             c.close();
         }
         return sponsorsList;
-    }
+    }*/
 
 }

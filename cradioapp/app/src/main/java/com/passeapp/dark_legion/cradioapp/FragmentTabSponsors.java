@@ -304,7 +304,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
         visitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String link = aux.getLink();
+                String link = aux.getUrl();
 
                 if(link != "null" && link != "false" && link != " "){
                     try{
@@ -398,7 +398,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
                 double longitude;
                 double latitude;
                 LocationManager lm = (LocationManager)getContext().getSystemService(Context.LOCATION_SERVICE);
-                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                Location location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if(location != null){
                      longitude = location.getLongitude();
                      latitude = location.getLatitude();
@@ -415,7 +415,7 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
                 conn.connect();
                 Uri.Builder builder = new Uri.Builder()
                         .appendQueryParameter("lat", String.valueOf(latitude))
-                        .appendQueryParameter("lon", String.valueOf(longitude));
+                        .appendQueryParameter("lng", String.valueOf(longitude));
                 String query = builder.build().getEncodedQuery();
                 OutputStream os = conn.getOutputStream();
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
@@ -434,12 +434,16 @@ public class FragmentTabSponsors extends Fragment implements AdapterView.OnItemC
                 String body = IOUtils.toString(in, encoding);
 
                 JSONObject object = new JSONObject(body);
+                System.out.println(object.toString());
+                System.out.println(latitude + " " + longitude);
+                System.out.println("UserLat: " + object.getString("lat"));
+                System.out.println("UserLng: " + object.getString("lng"));
                 JSONArray items = object.getJSONArray("items");
 
                 for (int i=0;i<items.length();i++){
                     JSONObject aux = items.getJSONObject(i);
                     JSONObject coors = aux.getJSONObject("position");
-                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"),aux.getString("distance"));
+                    SponsorsClass sponsor = new SponsorsClass(i+1,coors.getDouble("lat"),coors.getDouble("lng"),aux.getString("url"),coors.getString("address"),aux.getString("image"),aux.getString("title"),aux.getString("distance"), aux.getString("localUrl"));
                     if(aux.has("content_html")){
                         sponsor.setHtmlContent(aux.getString("content_html"));
                     }

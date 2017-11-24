@@ -9,21 +9,34 @@ public class SponsorsClass {
     private Double lat;
     private Double lon;
     private String link;
+    private String url;
     private String address;
     private String imageLink;
     private String title;
     private String distance;
     private String htmlContent;
 
-    public SponsorsClass(int _id, Double lat, Double lon, String link, String address, String imageLink, String title,String distance) {
+    public SponsorsClass(int _id, Double lat, Double lon, String link, String address, String imageLink, String title,String distance, String url) {
         this._id = _id;
         this.lat = lat;
         this.lon = lon;
         this.link = link;
+        this.url = url;
         this.address = address;
         this.imageLink = imageLink;
         this.title = title;
         this.setDistance(distance);
+    }
+
+    public String getUrl() {
+        if (this.url == "null") {
+            return null;
+        }
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getHtmlContent() {
